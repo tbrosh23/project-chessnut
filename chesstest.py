@@ -123,7 +123,8 @@ try:
         maxind = np.argmax(arr[:,0])
         board.push(scores[maxind][1][0])
         end_time = time.perf_counter()
-        print("Turn duration: %d\n" % end_time-start_time)
+        tot_time = end_time-start_time
+        print("Turn duration: %f\n" % tot_time)
         #for move in scores[maxind][1]:
         #    board.push(move)
         print(board,"\n")
