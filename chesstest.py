@@ -2,6 +2,7 @@
 import chess
 import random
 import numpy as np
+import time
 
 positions = {}
 
@@ -86,10 +87,10 @@ def get_rel_score(fen):
 
 # Evaluate the score of each branch
 # Among the top scoring, choose a random branch
-def engine1(curnode, scores, curbranch):
+def engine1(curnode, scores, curbranch, fen):
     if(curnode.children == []):
         curbranch.append(curnode.data)
-        board = chess.Board()
+        board = chess.Board(fen)
         for move in curbranch:
             board.push(move)
         topush = curbranch.copy()
@@ -100,31 +101,37 @@ def engine1(curnode, scores, curbranch):
         else:
             curbranch.append(curnode.data)
         for cnode in curnode.children:
-            engine1(cnode, scores, curbranch)
+            engine1(cnode, scores, curbranch, fen)
             curbranch.pop()
 
 random.seed(2)
 try:
     #Initialize board
+    usr_mode=True
     board = chess.Board()
     board_fen = board.fen()
     i = 0
     while(not (board.is_checkmate() or board.is_stalemate())):
         print("Move %i" % i)
-        get_score_white(board_fen)
         top = Tree("root")
         depth = 3
-        move_tree = return_move_tree(board_fen,depth,top)
-        #print(top.data,"->",top.children[0].data,"->",top.children[0].children[0].data)
+        start_time = time.perf_counter()
+        return_move_tree(board.fen(),depth,top)
         scores = []
-        engine1(top,scores,[])
-        arr = np.array(scores)
-        for move in scores[2953][1]:
-            board.push(move)
-        print(board)
-
-
-        board = make_random_move(board.fen())
+        engine1(top,scores,[], board.fen())
+        arr = np.array(scores, dtype=object)
+        maxind = np.argmax(arr[:,0])
+        board.push(scores[maxind][1][0])
+        end_time = time.perf_counter()
+        print("Turn duration: %d\n" % end_time-start_time)
+        #for move in scores[maxind][1]:
+        #    board.push(move)
+        print(board,"\n")
+        if usr_mode:
+            usr_move = input()
+            board.push_san(usr_move)
+        else:
+            board = make_random_move(board.fen())
         print(board,"\n")
         #input()
         i = i+1
